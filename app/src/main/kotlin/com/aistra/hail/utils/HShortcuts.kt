@@ -11,6 +11,7 @@ import androidx.core.graphics.drawable.IconCompat
 import com.aistra.hail.HailApp.Companion.app
 import com.aistra.hail.R
 import com.aistra.hail.app.AppInfo
+import com.aistra.hail.app.AppManager
 import com.aistra.hail.app.HailApi
 import com.aistra.hail.app.HailData
 import me.zhanghai.android.appiconloader.AppIconLoader
