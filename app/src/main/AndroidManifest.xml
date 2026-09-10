@@ -55,6 +55,13 @@
             </intent-filter>
         </activity>
         <activity
+                android:name=".ui.home.HiddenAppProxyActivity"
+                android:excludeFromRecents="true"
+                android:exported="true"
+                android:launchMode="singleTop"
+                android:noHistory="true"
+                android:theme="@style/Theme.Hail.Translucent" />
+        <activity
                 android:name=".ui.api.ApiActivity"
                 android:excludeFromRecents="true"
                 android:exported="true"
