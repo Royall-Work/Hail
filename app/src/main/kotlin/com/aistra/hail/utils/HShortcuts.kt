@@ -13,6 +13,7 @@ import com.aistra.hail.R
 import com.aistra.hail.app.AppInfo
 import com.aistra.hail.app.HailApi
 import com.aistra.hail.app.HailData
+import com.aistra.hail.ui.proxy.HiddenAppProxyActivity
 import me.zhanghai.android.appiconloader.AppIconLoader
 
 object HShortcuts {
@@ -31,7 +32,14 @@ object HShortcuts {
     fun addPinShortcut(appInfo: AppInfo, id: String, label: CharSequence, intent: Intent) {
         appInfo.applicationInfo?.let {
             val icon = IconPack.loadIcon(it.packageName) ?: iconLoader.loadIcon(it)
-            addPinShortcut(IconCompat.createWithBitmap(icon), id, label, intent)
+            val shortcutIntent = if (
+                intent.action == HailApi.ACTION_LAUNCH && HailData.workingMode == HailData.MODE_DHIZUKU_HIDE
+                    && HPackages.isAppHidden(it.packageName)
+            ) {
+                Intent(app, HiddenAppProxyActivity::class.java)
+                    .putExtra(HailData.KEY_PACKAGE, it.packageName)
+            } else intent
+            addPinShortcut(IconCompat.createWithBitmap(icon), id, label, shortcutIntent)
         } ?: run {
             addPinShortcut(app.packageManager.defaultActivityIcon, id, label, intent)
         }
