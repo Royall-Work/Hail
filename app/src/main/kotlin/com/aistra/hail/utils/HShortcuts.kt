@@ -44,7 +44,7 @@ object HShortcuts {
     fun addProxyShortcut(appInfo: AppInfo) {
         appInfo.applicationInfo?.let {
             val icon = IconPack.loadIcon(it.packageName) ?: iconLoader.loadIcon(it)
-            val bitmap = icon.copy(Bitmap.Config.ARGB_8888, true)
+            val bitmap = getBitmapFromDrawable(icon).copy(Bitmap.Config.ARGB_8888, true)
             val canvas = Canvas(bitmap)
             val size = (bitmap.width * 0.30f).toInt().coerceAtLeast(1)
             val left = bitmap.width - size
