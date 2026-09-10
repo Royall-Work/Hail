@@ -41,7 +41,6 @@ class AppsFragment : MainFragment(), AppsAdapter.OnItemClickListener, AppsAdapte
     private val binding get() = _binding!!
     private lateinit var appsAdapter: AppsAdapter
 
-    // Prevent the same data from being filtered twice in `onCreateView`
     private var lastAppsHash: Int = 0
     private lateinit var lastQuery: String
     private val isAppsChanged get() = model.apps.value.hashCode() != lastAppsHash
@@ -251,14 +250,11 @@ class AppsFragment : MainFragment(), AppsAdapter.OnItemClickListener, AppsAdapte
     override fun onPrepareMenu(menu: Menu) {
         super.onPrepareMenu(menu)
         menu.findItem(
-            when (HailData.sortBy) {
-                HailData.SORT_INSTALL -> R.id.sort_by_install
-                HailData.SORT_UPDATE -> R.id.sort_by_update
-                else -> R.id.sort_by_name
+            when {
+                HailData.filterUninstalledApps -> R.id.filter_uninstalled_apps
+                HailData.filterSystemApps -> R.id.filter_system_apps
+                else -> R.id.filter_user_apps
             }
-        ).isChecked = true
-        menu.findItem(
-            if (HailData.filterSystemApps) R.id.filter_system_apps else R.id.filter_user_apps
         ).isChecked = true
         menu.findItem(R.id.filter_frozen_apps).isChecked = HailData.filterFrozenApps
         menu.findItem(R.id.filter_unfrozen_apps).isChecked = HailData.filterUnfrozenApps
@@ -275,6 +271,7 @@ class AppsFragment : MainFragment(), AppsAdapter.OnItemClickListener, AppsAdapte
                     changeAppsFilter(HailData.FILTER_SYSTEM_APPS, item)
                 }.setNegativeButton(android.R.string.cancel, null).show()
 
+            R.id.filter_uninstalled_apps -> changeAppsFilter(HailData.FILTER_UNINSTALLED_APPS, item)
             R.id.filter_frozen_apps -> changeAppsFilter(HailData.FILTER_FROZEN_APPS, item)
             R.id.filter_unfrozen_apps -> changeAppsFilter(HailData.FILTER_UNFROZEN_APPS, item)
         }
@@ -289,16 +286,12 @@ class AppsFragment : MainFragment(), AppsAdapter.OnItemClickListener, AppsAdapte
 
     private fun changeAppsFilter(filter: String, item: MenuItem) {
         when (item.itemId) {
-            R.id.filter_user_apps -> {
+            R.id.filter_user_apps, R.id.filter_system_apps, R.id.filter_uninstalled_apps -> {
                 item.isChecked = true
-                HailData.changeAppsFilter(filter, item.isChecked)
-                HailData.changeAppsFilter(HailData.FILTER_SYSTEM_APPS, false)
-            }
-
-            R.id.filter_system_apps -> {
-                item.isChecked = true
-                HailData.changeAppsFilter(filter, item.isChecked)
-                HailData.changeAppsFilter(HailData.FILTER_USER_APPS, false)
+                HailData.changeAppsFilter(filter, true)
+                HailData.changeAppsFilter(HailData.FILTER_USER_APPS, item.itemId == R.id.filter_user_apps)
+                HailData.changeAppsFilter(HailData.FILTER_SYSTEM_APPS, item.itemId == R.id.filter_system_apps)
+                HailData.changeAppsFilter(HailData.FILTER_UNINSTALLED_APPS, item.itemId == R.id.filter_uninstalled_apps)
             }
 
             else -> {
