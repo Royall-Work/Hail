@@ -560,7 +560,6 @@ class SettingsFragment : MainFragment(), MenuProvider {
         when (item.itemId) {
             R.id.action_terminal -> showTerminalDialog()
             R.id.action_remove_owner -> (requireActivity() as MainActivity).ownerRemoveDialog()
-            R.id.action_help -> HUI.openLink(HailData.URL_README)
         }
         return false
     }
