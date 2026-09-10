@@ -37,17 +37,6 @@ object HShortcuts {
         }
     }
 
-    private fun addPinShortcut(icon: IconCompat, id: String, label: CharSequence, intent: Intent) {
-        if (ShortcutManagerCompat.isRequestPinShortcutSupported(app)) {
-            val shortcut =
-                ShortcutInfoCompat.Builder(app, id).setIcon(icon).setShortLabel(label)
-                    .setIntent(intent).build()
-            ShortcutManagerCompat.requestPinShortcut(app, shortcut, null)
-        } else HUI.showToast(
-            R.string.operation_failed, app.getString(R.string.action_add_pin_shortcut)
-        )
-    }
-
     fun addDynamicShortcut(packageName: String) {
         if (HailData.biometricLogin) return
         val applicationInfo = HPackages.getApplicationInfoOrNull(packageName)
