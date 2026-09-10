@@ -28,6 +28,10 @@ import com.google.android.material.tabs.TabLayoutMediator
 
 class HomeFragment : MainFragment() {
     var multiselect: Boolean = false
+        set(value) {
+            field = value
+            if (isAdded) requireActivity().invalidateOptionsMenu()
+        }
     val selectedList: MutableList<AppInfo> = mutableListOf()
     private var _binding: FragmentHomeBinding? = null
     val binding get() = _binding!!
@@ -45,6 +49,10 @@ class HomeFragment : MainFragment() {
 
         (requireActivity() as MenuHost).addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) = Unit
+
+            override fun onPrepareMenu(menu: Menu) {
+                menu.findItem(R.id.action_make_proxy)?.isVisible = multiselect
+            }
 
             override fun onMenuItemSelected(item: MenuItem): Boolean {
                 if (item.itemId != R.id.action_make_proxy) return false
