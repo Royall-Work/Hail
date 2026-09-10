@@ -37,6 +37,26 @@ object HShortcuts {
         }
     }
 
+    fun addProxyShortcut(appInfo: AppInfo): Boolean {
+        if (!HailData.isChecked(appInfo.packageName) ||
+            HailData.getAppMode(appInfo.packageName) != HailData.MODE_DHIZUKU_HIDE ||
+            !AppManager.isAppFrozen(appInfo.packageName)
+        ) return false
+
+        val applicationInfo = appInfo.applicationInfo ?: return false
+        val targetIcon = IconPack.loadIcon(applicationInfo.packageName) ?: iconLoader.loadIcon(applicationInfo)
+        val shortcutIcon = getProxyIcon(targetIcon)
+        val intent = Intent(app, com.aistra.hail.ui.home.HiddenAppProxyActivity::class.java)
+            .putExtra(com.aistra.hail.ui.home.HiddenAppProxyActivity.EXTRA_PACKAGE, appInfo.packageName)
+        addPinShortcut(
+            IconCompat.createWithBitmap(shortcutIcon),
+            "proxy_${appInfo.packageName}",
+            appInfo.name,
+            intent
+        )
+        return true
+    }
+
     private fun addPinShortcut(icon: IconCompat, id: String, label: CharSequence, intent: Intent) {
         if (ShortcutManagerCompat.isRequestPinShortcutSupported(app)) {
             val shortcut =
@@ -99,11 +119,22 @@ object HShortcuts {
         ShortcutManagerCompat.removeAllDynamicShortcuts(app)
     }
 
+    private fun getProxyIcon(icon: Bitmap): Bitmap = Bitmap.createBitmap(
+        icon.width, icon.height, Bitmap.Config.ARGB_8888
+    ).also { bitmap ->
+        with(Canvas(bitmap)) {
+            drawBitmap(icon, 0f, 0f, null)
+            val badge = getBitmapFromDrawable(app.applicationInfo.loadIcon(app.packageManager))
+            val size = (width * 0.28f).toInt().coerceAtLeast(1)
+            drawBitmap(badge, null, android.graphics.Rect(width - size, height - size, width, height), null)
+        }
+    }
+
     private fun getDrawableIcon(drawable: Drawable): IconCompat =
         IconCompat.createWithBitmap(getBitmapFromDrawable(drawable))
 
     private fun getBitmapFromDrawable(drawable: Drawable): Bitmap = Bitmap.createBitmap(
-        drawable.intrinsicWidth, drawable.intrinsicHeight, Bitmap.Config.ARGB_8888
+        drawable.intrinsicWidth.coerceAtLeast(1), drawable.intrinsicHeight.coerceAtLeast(1), Bitmap.Config.ARGB_8888
     ).also {
         with(Canvas(it)) {
             drawable.setBounds(0, 0, width, height)
