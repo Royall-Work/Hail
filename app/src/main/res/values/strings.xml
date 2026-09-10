@@ -31,6 +31,8 @@
     <string name="action_tag_set">Set tag</string>
     <string name="action_add_pin_shortcut">Add to Home screen</string>
     <string name="action_make_proxy">Make Proxy</string>
+    <string name="msg_no_hidden_proxy">No hidden Dhizuku apps selected</string>
+    <string name="msg_proxy_created">Proxy requested: %s</string>
     <string name="action_export_clipboard">Export to Clipboard</string>
     <string name="action_import_clipboard">Import from Clipboard</string>
     <string name="action_remove_home">Remove from Home</string>
