@@ -48,6 +48,7 @@ object HShortcuts {
         val targetIcon = IconPack.loadIcon(applicationInfo.packageName) ?: iconLoader.loadIcon(applicationInfo)
         val shortcutIcon = getProxyIcon(targetIcon)
         val intent = Intent(app, com.aistra.hail.ui.home.HiddenAppProxyActivity::class.java)
+            .setAction(Intent.ACTION_VIEW)
             .putExtra(com.aistra.hail.ui.home.HiddenAppProxyActivity.EXTRA_PACKAGE, appInfo.packageName)
         addPinShortcut(
             IconCompat.createWithBitmap(shortcutIcon),
