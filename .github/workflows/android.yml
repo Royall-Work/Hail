@@ -1,4 +1,4 @@
-name: Android Debug Build
+name: Android Release Build
 
 on:
   workflow_dispatch:
@@ -9,16 +9,38 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7.0.1
+
       - name: Setup Java JDK
         uses: actions/setup-java@v5.7.0
         with:
           distribution: 'temurin'
           java-version: '21'
-      - name: Build Debug APK
-        run: ./gradlew assembleDebug
-      - name: Upload Debug APK
+
+      - name: Generate test signing key
+        run: |
+          keytool -genkeypair \
+            -keystore keystore.jks \
+            -storepass testpassword \
+            -keypass testpassword \
+            -alias hail-test \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -dname "CN=Hail Test, OU=Test, O=Royall-Work, L=India, ST=UP, C=IN"
+
+          cat > signing.properties <<'EOF'
+          storeFile=../keystore.jks
+          storePassword=testpassword
+          keyAlias=hail-test
+          keyPassword=testpassword
+          EOF
+
+      - name: Build Release APK
+        run: ./gradlew assembleRelease
+
+      - name: Upload Release APK
         uses: actions/upload-artifact@v7.0.1
         with:
-          name: app-debug.apk
-          path: app/build/outputs/apk/debug/*.apk
+          name: hail-release
+          path: app/build/outputs/apk/release/*.apk
           archive: false
