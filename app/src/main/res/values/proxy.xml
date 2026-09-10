@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="action_make_proxy" type="id" />
+    <string name="action_make_proxy">Make Proxy</string>
+    <string name="msg_proxy_created">Proxy created: %s</string>
+    <string name="msg_proxy_none">Select a hidden Dhizuku Hide app first.</string>
+</resources>
