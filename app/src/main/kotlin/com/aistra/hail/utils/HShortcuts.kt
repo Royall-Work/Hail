@@ -135,7 +135,7 @@ object HShortcuts {
         IconCompat.createWithBitmap(getBitmapFromDrawable(drawable))
 
     private fun getBitmapFromDrawable(drawable: Drawable): Bitmap = Bitmap.createBitmap(
-        drawable.intrinsicWidth.coerceAtLeast(1), drawable.intrinsicHeight.coerceAtLeast(1), Bitmap.Config.ARGB_8888
+        drawable.intrinsicWidth, drawable.intrinsicHeight, Bitmap.Config.ARGB_8888
     ).also {
         with(Canvas(it)) {
             drawable.setBounds(0, 0, width, height)
