@@ -29,6 +29,7 @@ object HailData {
     private const val KEY_TAGS = "tags"
     private const val KEY_PINNED = "pinned"
     private const val KEY_WHITELISTED = "whitelisted"
+    private const val KEY_MODE = "mode"
     const val KEY_PACKAGE = "package"
     const val KEY_FROZEN = "frozen"
     private const val SORT_BY = "sort_by"
@@ -172,7 +173,8 @@ object HailData {
                             whitelisted = optBoolean(KEY_WHITELISTED),
                             tagIdList = optJSONArray(KEY_TAGS)?.let {
                                 MutableList(it.length()) { index -> it.getInt(index) }
-                            } ?: mutableListOf(optInt(KEY_TAG))
+                            } ?: mutableListOf(optInt(KEY_TAG)),
+                            mode = if (has(KEY_MODE)) optString(KEY_MODE) else null
                         )
                     })
                 }
@@ -182,8 +184,13 @@ object HailData {
 
     fun isChecked(packageName: String): Boolean = checkedList.any { it.packageName == packageName }
 
-    fun addCheckedApp(packageName: String, tagId: Int = 0, saveApps: Boolean = true) {
-        checkedList.add(AppInfo(packageName, tagIdList = mutableListOf(tagId)))
+    fun getAppMode(packageName: String): String =
+        checkedList.firstOrNull { it.packageName == packageName }?.mode
+            ?.takeIf { it == MODE_DHIZUKU_HIDE || it == MODE_DHIZUKU_SUSPEND }
+            ?: workingMode
+
+    fun addCheckedApp(packageName: String, tagId: Int = 0, saveApps: Boolean = true, mode: String? = null) {
+        checkedList.add(AppInfo(packageName, tagIdList = mutableListOf(tagId), mode = mode))
         if (saveApps) saveApps()
     }
 
@@ -202,6 +209,7 @@ object HailData {
                         .put(KEY_PINNED, it.pinned)
                         .put(KEY_WHITELISTED, it.whitelisted)
                         .put(KEY_TAGS, JSONArray(it.tagIdList))
+                        .apply { it.mode?.let { mode -> put(KEY_MODE, mode) } }
                 )
             }
             toString()
