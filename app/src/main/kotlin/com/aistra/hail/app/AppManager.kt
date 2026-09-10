@@ -16,11 +16,15 @@ object AppManager {
             else -> false
         }
 
+    private fun getWorkingMode(packageName: String): String =
+        if (HailData.workingMode.startsWith(HailData.DHIZUKU)) HailData.getAppMode(packageName)
+        else HailData.workingMode
+
     fun isAppFrozen(packageName: String): Boolean = when {
-        HailData.workingMode.endsWith(HailData.STOP) -> HPackages.isAppStopped(packageName)
-        HailData.workingMode.endsWith(HailData.DISABLE) -> HPackages.isAppDisabled(packageName)
-        HailData.workingMode.endsWith(HailData.HIDE) -> HPackages.isAppHidden(packageName)
-        HailData.workingMode.endsWith(HailData.SUSPEND) -> HPackages.isAppSuspended(packageName)
+        getWorkingMode(packageName).endsWith(HailData.STOP) -> HPackages.isAppStopped(packageName)
+        getWorkingMode(packageName).endsWith(HailData.DISABLE) -> HPackages.isAppDisabled(packageName)
+        getWorkingMode(packageName).endsWith(HailData.HIDE) -> HPackages.isAppHidden(packageName)
+        getWorkingMode(packageName).endsWith(HailData.SUSPEND) -> HPackages.isAppSuspended(packageName)
         else -> HPackages.isAppDisabled(packageName)
                 || HPackages.isAppHidden(packageName)
                 || HPackages.isAppSuspended(packageName)
@@ -51,7 +55,7 @@ object AppManager {
     }
 
     fun setAppFrozen(packageName: String, frozen: Boolean): Boolean =
-        packageName != BuildConfig.APPLICATION_ID && when (HailData.workingMode) {
+        packageName != BuildConfig.APPLICATION_ID && when (getWorkingMode(packageName)) {
             HailData.MODE_OWNER_HIDE -> HPolicy.setAppHidden(packageName, frozen)
             HailData.MODE_OWNER_SUSPEND -> HPolicy.setAppSuspended(packageName, frozen)
             HailData.MODE_DHIZUKU_HIDE -> HDhizuku.setAppHidden(packageName, frozen)
