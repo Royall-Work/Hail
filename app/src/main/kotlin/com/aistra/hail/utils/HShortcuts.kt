@@ -1,5 +1,6 @@
 package com.aistra.hail.utils
 
+import android.content.ComponentName
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -14,6 +15,7 @@ import com.aistra.hail.app.AppInfo
 import com.aistra.hail.app.AppManager
 import com.aistra.hail.app.HailApi
 import com.aistra.hail.app.HailData
+import com.aistra.hail.ui.main.MainActivity
 import me.zhanghai.android.appiconloader.AppIconLoader
 
 object HShortcuts {
@@ -47,24 +49,35 @@ object HShortcuts {
         val applicationInfo = appInfo.applicationInfo ?: return false
         val targetIcon = IconPack.loadIcon(applicationInfo.packageName) ?: iconLoader.loadIcon(applicationInfo)
         val shortcutIcon = getProxyIcon(targetIcon)
-        val intent = Intent(app, com.aistra.hail.ui.home.HiddenAppProxyActivity::class.java)
+        val intent = Intent(app, HiddenAppProxyActivity::class.java)
             .setAction(Intent.ACTION_VIEW)
-            .putExtra(com.aistra.hail.ui.home.HiddenAppProxyActivity.EXTRA_PACKAGE, appInfo.packageName)
+            .putExtra(HiddenAppProxyActivity.EXTRA_PACKAGE, appInfo.packageName)
         addPinShortcut(
             IconCompat.createWithBitmap(shortcutIcon),
             "proxy_${appInfo.packageName}",
             appInfo.name,
-            intent
+            intent,
+            true
         )
         return true
     }
 
-    private fun addPinShortcut(icon: IconCompat, id: String, label: CharSequence, intent: Intent) {
+    private fun addPinShortcut(
+        icon: IconCompat,
+        id: String,
+        label: CharSequence,
+        intent: Intent,
+        proxy: Boolean = false
+    ) {
         if (ShortcutManagerCompat.isRequestPinShortcutSupported(app)) {
-            val shortcut =
-                ShortcutInfoCompat.Builder(app, id).setIcon(icon).setShortLabel(label)
-                    .setIntent(intent).build()
-            ShortcutManagerCompat.requestPinShortcut(app, shortcut, null)
+            val builder = ShortcutInfoCompat.Builder(app, id)
+                .setIcon(icon)
+                .setShortLabel(label)
+                .setIntent(intent)
+            if (proxy) {
+                builder.setActivity(ComponentName(app, MainActivity::class.java))
+            }
+            ShortcutManagerCompat.requestPinShortcut(app, builder.build(), null)
         } else HUI.showToast(
             R.string.operation_failed, app.getString(R.string.action_add_pin_shortcut)
         )
@@ -74,7 +87,7 @@ object HShortcuts {
         if (HailData.biometricLogin) return
         val applicationInfo = HPackages.getApplicationInfoOrNull(packageName)
         val shortcut =
-            ShortcutInfoCompat.Builder(app, packageName.hashCode().toString()) // Make id different from pin
+            ShortcutInfoCompat.Builder(app, packageName.hashCode().toString())
                 .setIcon(IconCompat.createWithBitmap(applicationInfo?.let {
                     IconPack.loadIcon(it.packageName) ?: iconLoader.loadIcon(it)
                 } ?: getBitmapFromDrawable(
