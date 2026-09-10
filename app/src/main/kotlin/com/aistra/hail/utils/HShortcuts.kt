@@ -3,6 +3,7 @@ package com.aistra.hail.utils
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Paint
 import android.graphics.drawable.Drawable
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.pm.ShortcutInfoCompat
@@ -13,6 +14,7 @@ import com.aistra.hail.R
 import com.aistra.hail.app.AppInfo
 import com.aistra.hail.app.HailApi
 import com.aistra.hail.app.HailData
+import com.aistra.hail.ui.proxy.HiddenAppProxyActivity
 import me.zhanghai.android.appiconloader.AppIconLoader
 
 object HShortcuts {
@@ -35,6 +37,37 @@ object HShortcuts {
         } ?: run {
             addPinShortcut(app.packageManager.defaultActivityIcon, id, label, intent)
         }
+    }
+
+    fun addProxyShortcut(appInfo: AppInfo): Boolean {
+        if (HailData.getAppMode(appInfo.packageName) != HailData.MODE_DHIZUKU_HIDE ||
+            !HPackages.isAppHidden(appInfo.packageName)
+        ) return false
+
+        val icon = appInfo.applicationInfo?.let {
+            IconPack.loadIcon(it.packageName) ?: iconLoader.loadIcon(it)
+        } ?: app.packageManager.defaultActivityIcon
+        val intent = Intent(app, HiddenAppProxyActivity::class.java).apply {
+            putExtra(HailData.KEY_PACKAGE, appInfo.packageName)
+        }
+        addPinShortcut(
+            IconCompat.createWithBitmap(getProxyIcon(icon)),
+            "proxy_${appInfo.packageName}",
+            "${appInfo.name} • Hail",
+            intent
+        )
+        return true
+    }
+
+    private fun addPinShortcut(icon: IconCompat, id: String, label: CharSequence, intent: Intent) {
+        if (ShortcutManagerCompat.isRequestPinShortcutSupported(app)) {
+            val shortcut =
+                ShortcutInfoCompat.Builder(app, id).setIcon(icon).setShortLabel(label)
+                    .setIntent(intent).build()
+            ShortcutManagerCompat.requestPinShortcut(app, shortcut, null)
+        } else HUI.showToast(
+            R.string.operation_failed, app.getString(R.string.action_add_pin_shortcut)
+        )
     }
 
     fun addDynamicShortcut(packageName: String) {
@@ -86,6 +119,24 @@ object HShortcuts {
 
     fun removeAllDynamicShortcuts() {
         ShortcutManagerCompat.removeAllDynamicShortcuts(app)
+    }
+
+    private fun getProxyIcon(drawable: Drawable): Bitmap {
+        val bitmap = getBitmapFromDrawable(drawable)
+        val canvas = Canvas(bitmap)
+        val size = bitmap.width.coerceAtLeast(bitmap.height).toFloat()
+        val radius = size * 0.14f
+        val cx = bitmap.width - radius * 1.15f
+        val cy = bitmap.height - radius * 1.15f
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+        paint.color = androidx.core.content.ContextCompat.getColor(app, R.color.colorPrimary)
+        canvas.drawCircle(cx, cy, radius, paint)
+        paint.color = android.graphics.Color.WHITE
+        paint.textAlign = Paint.Align.CENTER
+        paint.textSize = radius * 1.25f
+        paint.typeface = android.graphics.Typeface.DEFAULT_BOLD
+        canvas.drawText("H", cx, cy - (paint.ascent() + paint.descent()) / 2, paint)
+        return bitmap
     }
 
     private fun getDrawableIcon(drawable: Drawable): IconCompat =
