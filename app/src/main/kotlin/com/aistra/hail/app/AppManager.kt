@@ -20,14 +20,17 @@ object AppManager {
         if (HailData.workingMode.startsWith(HailData.DHIZUKU)) HailData.getAppMode(packageName)
         else HailData.workingMode
 
-    fun isAppFrozen(packageName: String): Boolean = when {
-        getWorkingMode(packageName).endsWith(HailData.STOP) -> HPackages.isAppStopped(packageName)
-        getWorkingMode(packageName).endsWith(HailData.DISABLE) -> HPackages.isAppDisabled(packageName)
-        getWorkingMode(packageName).endsWith(HailData.HIDE) -> HPackages.isAppHidden(packageName)
-        getWorkingMode(packageName).endsWith(HailData.SUSPEND) -> HPackages.isAppSuspended(packageName)
-        else -> HPackages.isAppDisabled(packageName)
-                || HPackages.isAppHidden(packageName)
-                || HPackages.isAppSuspended(packageName)
+    fun isAppFrozen(packageName: String): Boolean {
+        val mode = getWorkingMode(packageName)
+        return when {
+            mode.endsWith(HailData.STOP) -> HPackages.isAppStopped(packageName)
+            mode.endsWith(HailData.DISABLE) -> HPackages.isAppDisabled(packageName)
+            mode.endsWith(HailData.HIDE) -> HPackages.isAppHidden(packageName)
+            mode.endsWith(HailData.SUSPEND) -> HPackages.isAppSuspended(packageName)
+            else -> HPackages.isAppDisabled(packageName)
+                    || HPackages.isAppHidden(packageName)
+                    || HPackages.isAppSuspended(packageName)
+        }
     }
 
     fun setListFrozen(frozen: Boolean, vararg appInfo: AppInfo): String? {
