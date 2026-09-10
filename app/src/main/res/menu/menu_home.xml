@@ -14,6 +14,11 @@
             android:title="@string/tap_to_select"
             app:showAsAction="always"
             tools:ignore="AlwaysShowAction"/>
+    <item
+            android:id="@+id/action_make_proxy"
+            android:title="@string/action_make_proxy"
+            android:visible="false"
+            app:showAsAction="ifRoom"/>
     <group android:id="@+id/group_freeze_current">
         <item
                 android:id="@+id/action_freeze_current"
