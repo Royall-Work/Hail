@@ -65,6 +65,7 @@
     <string name="filter_by">Filter</string>
     <string name="filter_user_apps">User</string>
     <string name="filter_system_apps">System</string>
+    <string name="filter_uninstalled_apps">Uninstalled</string>
     <string name="filter_frozen_apps">Frozen</string>
     <string name="filter_unfrozen_apps">Unfrozen</string>
     <string name="sort_by">Sort by</string>

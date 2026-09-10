@@ -22,6 +22,9 @@
                 <item
                         android:id="@+id/filter_system_apps"
                         android:title="@string/filter_system_apps"/>
+                <item
+                        android:id="@+id/filter_uninstalled_apps"
+                        android:title="@string/filter_uninstalled_apps"/>
             </group>
             <group
                     android:id="@+id/group_filter_frozen"

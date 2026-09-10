@@ -24,9 +24,6 @@ class AppsViewModel(application: Application) : AndroidViewModel(application) {
     private var refreshJob: Job? = null
     private var refreshStateJob: Job? = null
 
-    /**
-     * Delaying changes to the refreshing state prevents the progress bar from flickering.
-     * */
     private fun postRefreshState(state: Boolean, delayTime: Long = 200L) {
         if (!state) {
             refreshStateJob?.cancel()
@@ -51,10 +48,6 @@ class AppsViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    /**
-     * This method is only used to refresh all the applications that the user has installed
-     * and has no filtering or sorting effect.
-     * */
     fun updateAppList() {
         viewModelScope.launch {
             postRefreshState(true)
@@ -62,12 +55,6 @@ class AppsViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    /**
-     * The list that the user actually sees.
-     *
-     * This method is different from `updateAppList()` in that it filters and rearranges the data
-     * from `apps` and places it in `displayApps`.
-     * */
     fun updateDisplayAppList() {
         apps.value?.let {
             viewModelScope.launch {
@@ -78,9 +65,10 @@ class AppsViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-
     private val ApplicationInfo.isSystemApp: Boolean
         get() = flags and ApplicationInfo.FLAG_SYSTEM == ApplicationInfo.FLAG_SYSTEM
+    private val ApplicationInfo.isAppUninstalled: Boolean
+        get() = HPackages.isAppUninstalled(packageName)
     private val ApplicationInfo.isAppFrozen get() = AppManager.isAppFrozen(packageName)
 
     private suspend fun filterList(
@@ -90,12 +78,15 @@ class AppsViewModel(application: Application) : AndroidViewModel(application) {
         val pm = getApplication<HailApp>().packageManager
         return withContext(Dispatchers.Default) {
             return@withContext appList.filter {
-                ((HailData.filterUserApps && !it.isSystemApp)
-                        || (HailData.filterSystemApps && it.isSystemApp))
+                val isUninstalled = it.isAppUninstalled
+                val typeMatches =
+                    (HailData.filterUserApps && !it.isSystemApp && !isUninstalled)
+                            || (HailData.filterSystemApps && it.isSystemApp && !isUninstalled)
+                            || (HailData.filterUninstalledApps && isUninstalled)
 
+                typeMatches
                         && ((HailData.filterFrozenApps && it.isAppFrozen)
                         || (HailData.filterUnfrozenApps && !it.isAppFrozen))
-                        // Search apps
                         && ((HailData.nineKeySearch
                         && (NineKeySearch.search(query, it.packageName, it.loadLabel(pm).toString())))
                         || FuzzySearch.search(it.packageName, query)
