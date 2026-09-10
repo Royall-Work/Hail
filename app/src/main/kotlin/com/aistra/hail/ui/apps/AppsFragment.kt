@@ -48,7 +48,6 @@ class AppsFragment : MainFragment(), AppsAdapter.OnItemClickListener, AppsAdapte
     private val isQueryChanged get() = model.query.value != lastQuery
     private var contextMenuInfo: ContextMenu.ContextMenuInfo? = null
 
-
     private var exportApkPkg: String? = null
     private val exportApk =
         registerForActivityResult(CreateDocument("application/vnd.android.package-archive")) { uri ->
@@ -198,9 +197,35 @@ class AppsFragment : MainFragment(), AppsAdapter.OnItemClickListener, AppsAdapte
     override fun onItemCheckedChange(
         buttonView: CompoundButton, isChecked: Boolean, packageName: String
     ) {
-        if (isChecked) HailData.addCheckedApp(packageName)
-        else HailData.removeCheckedApp(packageName)
-        buttonView.isChecked = HailData.isChecked(packageName)
+        if (!isChecked) {
+            HailData.removeCheckedApp(packageName)
+            buttonView.isChecked = false
+            return
+        }
+
+        if (HailData.workingMode.startsWith(HailData.DHIZUKU)) {
+            val modes = arrayOf(
+                getString(R.string.mode_dhizuku_hide),
+                getString(R.string.mode_dhizuku_suspend)
+            )
+            val values = arrayOf(
+                HailData.MODE_DHIZUKU_HIDE,
+                HailData.MODE_DHIZUKU_SUSPEND
+            )
+            val defaultMode = values.indexOf(HailData.workingMode).coerceAtLeast(0)
+            MaterialAlertDialogBuilder(activity)
+                .setTitle(R.string.action_freeze)
+                .setSingleChoiceItems(modes, defaultMode) { dialog, which ->
+                    HailData.addCheckedApp(packageName, mode = values[which])
+                    buttonView.isChecked = true
+                    dialog.dismiss()
+                }
+                .setOnCancelListener { buttonView.isChecked = false }
+                .show()
+        } else {
+            HailData.addCheckedApp(packageName)
+            buttonView.isChecked = true
+        }
     }
 
     override fun onCreateMenu(menu: Menu, inflater: MenuInflater) {
