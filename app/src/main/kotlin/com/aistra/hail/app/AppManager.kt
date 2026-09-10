@@ -16,14 +16,21 @@ object AppManager {
             else -> false
         }
 
-    fun isAppFrozen(packageName: String): Boolean = when {
-        HailData.workingMode.endsWith(HailData.STOP) -> HPackages.isAppStopped(packageName)
-        HailData.workingMode.endsWith(HailData.DISABLE) -> HPackages.isAppDisabled(packageName)
-        HailData.workingMode.endsWith(HailData.HIDE) -> HPackages.isAppHidden(packageName)
-        HailData.workingMode.endsWith(HailData.SUSPEND) -> HPackages.isAppSuspended(packageName)
-        else -> HPackages.isAppDisabled(packageName)
-                || HPackages.isAppHidden(packageName)
-                || HPackages.isAppSuspended(packageName)
+    private fun getWorkingMode(packageName: String): String =
+        if (HailData.workingMode.startsWith(HailData.DHIZUKU)) HailData.getAppMode(packageName)
+        else HailData.workingMode
+
+    fun isAppFrozen(packageName: String): Boolean {
+        val mode = getWorkingMode(packageName)
+        return when {
+            mode.endsWith(HailData.STOP) -> HPackages.isAppStopped(packageName)
+            mode.endsWith(HailData.DISABLE) -> HPackages.isAppDisabled(packageName)
+            mode.endsWith(HailData.HIDE) -> HPackages.isAppHidden(packageName)
+            mode.endsWith(HailData.SUSPEND) -> HPackages.isAppSuspended(packageName)
+            else -> HPackages.isAppDisabled(packageName)
+                    || HPackages.isAppHidden(packageName)
+                    || HPackages.isAppSuspended(packageName)
+        }
     }
 
     fun setListFrozen(frozen: Boolean, vararg appInfo: AppInfo): String? {
@@ -51,7 +58,7 @@ object AppManager {
     }
 
     fun setAppFrozen(packageName: String, frozen: Boolean): Boolean =
-        packageName != BuildConfig.APPLICATION_ID && when (HailData.workingMode) {
+        packageName != BuildConfig.APPLICATION_ID && when (getWorkingMode(packageName)) {
             HailData.MODE_OWNER_HIDE -> HPolicy.setAppHidden(packageName, frozen)
             HailData.MODE_OWNER_SUSPEND -> HPolicy.setAppSuspended(packageName, frozen)
             HailData.MODE_DHIZUKU_HIDE -> HDhizuku.setAppHidden(packageName, frozen)
