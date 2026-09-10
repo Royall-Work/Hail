@@ -3,6 +3,9 @@ package com.aistra.hail.utils
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.Rect
 import android.graphics.drawable.Drawable
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.pm.ShortcutInfoCompat
@@ -13,6 +16,7 @@ import com.aistra.hail.R
 import com.aistra.hail.app.AppInfo
 import com.aistra.hail.app.HailApi
 import com.aistra.hail.app.HailData
+import com.aistra.hail.ui.home.HiddenAppProxyActivity
 import me.zhanghai.android.appiconloader.AppIconLoader
 
 object HShortcuts {
@@ -34,6 +38,34 @@ object HShortcuts {
             addPinShortcut(IconCompat.createWithBitmap(icon), id, label, intent)
         } ?: run {
             addPinShortcut(app.packageManager.defaultActivityIcon, id, label, intent)
+        }
+    }
+
+    fun addProxyShortcut(appInfo: AppInfo) {
+        appInfo.applicationInfo?.let {
+            val icon = IconPack.loadIcon(it.packageName) ?: iconLoader.loadIcon(it)
+            val bitmap = icon.copy(Bitmap.Config.ARGB_8888, true)
+            val canvas = Canvas(bitmap)
+            val size = (bitmap.width * 0.30f).toInt().coerceAtLeast(1)
+            val left = bitmap.width - size
+            val top = bitmap.height - size
+            val centerX = left + size / 2f
+            val centerY = top + size / 2f
+            canvas.drawCircle(centerX, centerY, size / 2f, Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                color = Color.WHITE
+            })
+            AppCompatResources.getDrawable(app, R.mipmap.ic_launcher)?.let { badge ->
+                badge.bounds = Rect(left, top, bitmap.width, bitmap.height)
+                badge.draw(canvas)
+            }
+            addPinShortcut(
+                IconCompat.createWithBitmap(bitmap),
+                "proxy_${appInfo.packageName}",
+                appInfo.name,
+                Intent(app, HiddenAppProxyActivity::class.java).putExtra(
+                    HiddenAppProxyActivity.EXTRA_PACKAGE, appInfo.packageName
+                )
+            )
         }
     }
 
