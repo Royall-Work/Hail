@@ -85,22 +85,27 @@ object HailData {
     val DYNAMIC_SHORTCUT_ACTIONS = listOf(
         ACTION_NONE,
         ACTION_FREEZE_ALL,
-        ACTION_UNFREEZE_ALL,
         ACTION_FREEZE_NON_WHITELISTED,
+        ACTION_UNFREEZE_ALL,
         ACTION_LOCK,
         ACTION_LOCK_FREEZE
     )
 
     private val sp = PreferenceManager.getDefaultSharedPreferences(app)
+
+    init {
+        if (sp.getString(WORKING_MODE, null) !in WORKING_MODE_VALUES) {
+            sp.edit { putString(WORKING_MODE, MODE_DHIZUKU_HIDE) }
+        }
+    }
+
     val sortBy get() = sp.getString(SORT_BY, SORT_NAME)
     val filterUserApps get() = sp.getBoolean(FILTER_USER_APPS, true)
     val filterSystemApps get() = sp.getBoolean(FILTER_SYSTEM_APPS, false)
     val filterUninstalledApps get() = sp.getBoolean(FILTER_UNINSTALLED_APPS, false)
     val filterFrozenApps get() = sp.getBoolean(FILTER_FROZEN_APPS, true)
     val filterUnfrozenApps get() = sp.getBoolean(FILTER_UNFROZEN_APPS, true)
-    val workingMode
-        get() = sp.getString(WORKING_MODE, MODE_DHIZUKU_HIDE)!!.takeIf { it in WORKING_MODE_VALUES }
-            ?: MODE_DHIZUKU_HIDE
+    val workingMode get() = sp.getString(WORKING_MODE, MODE_DHIZUKU_HIDE)!!
     val biometricLogin get() = sp.getBoolean(BIOMETRIC_LOGIN, false)
     val appTheme get() = sp.getString(APP_THEME, FOLLOW_SYSTEM)!!
     val iconPack get() = sp.getString(ICON_PACK, ACTION_NONE)!!
