@@ -41,53 +41,13 @@ object HailData {
     const val FILTER_UNINSTALLED_APPS = "filter_uninstalled_apps"
     const val FILTER_FROZEN_APPS = "filter_frozen_apps"
     const val FILTER_UNFROZEN_APPS = "filter_unfrozen_apps"
-    const val OWNER = "owner_"
     const val DHIZUKU = "dhizuku_"
-    const val SU = "su_"
-    const val SHIZUKU = "shizuku_"
-    const val ISLAND = "island_"
-    const val PRIVAPP = "privapp_"
-    const val STOP = "stop"
-    const val DISABLE = "disable"
     const val HIDE = "hide"
     const val SUSPEND = "suspend"
     const val WORKING_MODE = "working_mode"
-    const val MODE_DEFAULT = "default"
-    const val MODE_SHIZUKU_STOP = SHIZUKU + STOP
-    const val MODE_SHIZUKU_DISABLE = SHIZUKU + DISABLE
-    const val MODE_SHIZUKU_HIDE = SHIZUKU + HIDE
-    const val MODE_SHIZUKU_SUSPEND = SHIZUKU + SUSPEND
-    const val MODE_SU_STOP = SU + STOP
-    const val MODE_SU_DISABLE = SU + DISABLE
-    const val MODE_SU_HIDE = SU + HIDE
-    const val MODE_SU_SUSPEND = SU + SUSPEND
     const val MODE_DHIZUKU_HIDE = DHIZUKU + HIDE
     const val MODE_DHIZUKU_SUSPEND = DHIZUKU + SUSPEND
-    const val MODE_OWNER_HIDE = OWNER + HIDE
-    const val MODE_OWNER_SUSPEND = OWNER + SUSPEND
-    const val MODE_ISLAND_HIDE = ISLAND + HIDE
-    const val MODE_ISLAND_SUSPEND = ISLAND + SUSPEND
-    const val MODE_PRIVAPP_STOP = PRIVAPP + STOP
-    const val MODE_PRIVAPP_DISABLE = PRIVAPP + DISABLE
-    val WORKING_MODE_VALUES = listOf(
-        MODE_DEFAULT,
-        MODE_SHIZUKU_STOP,
-        MODE_SHIZUKU_DISABLE,
-        MODE_SHIZUKU_HIDE,
-        MODE_SHIZUKU_SUSPEND,
-        MODE_SU_STOP,
-        MODE_SU_DISABLE,
-        MODE_SU_HIDE,
-        MODE_SU_SUSPEND,
-        MODE_DHIZUKU_HIDE,
-        MODE_DHIZUKU_SUSPEND,
-        MODE_OWNER_HIDE,
-        MODE_OWNER_SUSPEND,
-        MODE_ISLAND_HIDE,
-        MODE_ISLAND_SUSPEND,
-        MODE_PRIVAPP_STOP,
-        MODE_PRIVAPP_DISABLE
-    )
+    val WORKING_MODE_VALUES = listOf(MODE_DHIZUKU_HIDE, MODE_DHIZUKU_SUSPEND)
     const val BIOMETRIC_LOGIN = "biometric_login"
     const val APP_THEME = "app_theme"
     const val FOLLOW_SYSTEM = "follow_system"
@@ -108,15 +68,14 @@ object HailData {
     const val ACTION_FREEZE_NON_WHITELISTED = "freeze_non_whitelisted"
     const val ACTION_LOCK = "lock"
     const val ACTION_LOCK_FREEZE = "lock_freeze"
-    val TILE_ACTION_VALUES =
-        listOf(
-            AUTO_FREEZE_AFTER_LOCK,
-            ACTION_FREEZE_ALL,
-            ACTION_UNFREEZE_ALL,
-            ACTION_FREEZE_NON_WHITELISTED,
-            ACTION_LOCK,
-            ACTION_LOCK_FREEZE
-        )
+    val TILE_ACTION_VALUES = listOf(
+        AUTO_FREEZE_AFTER_LOCK,
+        ACTION_FREEZE_ALL,
+        ACTION_UNFREEZE_ALL,
+        ACTION_FREEZE_NON_WHITELISTED,
+        ACTION_LOCK,
+        ACTION_LOCK_FREEZE
+    )
     const val AUTO_FREEZE_AFTER_LOCK = "auto_freeze_after_lock"
     const val AUTO_FREEZE_DELAY = "auto_freeze_delay_f"
     const val SKIP_WHILE_CHARGING = "skip_while_charging"
@@ -139,7 +98,9 @@ object HailData {
     val filterUninstalledApps get() = sp.getBoolean(FILTER_UNINSTALLED_APPS, false)
     val filterFrozenApps get() = sp.getBoolean(FILTER_FROZEN_APPS, true)
     val filterUnfrozenApps get() = sp.getBoolean(FILTER_UNFROZEN_APPS, true)
-    val workingMode get() = sp.getString(WORKING_MODE, MODE_DEFAULT)!!
+    val workingMode
+        get() = sp.getString(WORKING_MODE, MODE_DHIZUKU_HIDE)!!.takeIf { it in WORKING_MODE_VALUES }
+            ?: MODE_DHIZUKU_HIDE
     val biometricLogin get() = sp.getBoolean(BIOMETRIC_LOGIN, false)
     val appTheme get() = sp.getString(APP_THEME, FOLLOW_SYSTEM)!!
     val iconPack get() = sp.getString(ICON_PACK, ACTION_NONE)!!
