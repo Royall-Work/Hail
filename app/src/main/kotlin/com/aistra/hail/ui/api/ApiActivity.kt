@@ -50,13 +50,11 @@ class ApiActivity : ComponentActivity() {
                 setContent { AppTheme { RedirectBottomSheet(requirePackage) } }
                 return false
             }
-
             Intent.ACTION_VIEW -> return handleSchema(intent.data)
-
             HailApi.ACTION_LAUNCH -> launchApp(requirePackage, runCatching { requireTagId }.getOrNull())
             HailApi.ACTION_FREEZE -> setAppFrozen(requirePackage, true)
             HailApi.ACTION_UNFREEZE -> setAppFrozen(requirePackage, false)
-            HailApi.ACTION_FREEZE_TAG -> setListFrozen(true, HailData.checkedList.filter { requireTagId in it.tagIdList }, true)
+            HailApi.ACTION_FREEZE_TAG -> setListFrozen(true, HailData.checkedList.filter { requireTagId in it.tagIdList })
             HailApi.ACTION_UNFREEZE_TAG -> setListFrozen(false, HailData.checkedList.filter { requireTagId in it.tagIdList })
             HailApi.ACTION_FREEZE_ALL -> setListFrozen(true)
             HailApi.ACTION_UNFREEZE_ALL -> setListFrozen(false)
@@ -99,10 +97,7 @@ class ApiActivity : ComponentActivity() {
         Column {
             Text(
                 text = HPackages.getApplicationInfoOrNull(pkg)?.loadLabel(packageManager)?.toString() ?: pkg,
-                modifier = Modifier.padding(
-                    horizontal = dimensionResource(R.dimen.padding_medium),
-                    vertical = dimensionResource(R.dimen.padding_small)
-                ),
+                modifier = Modifier.padding(horizontal = dimensionResource(R.dimen.padding_medium), vertical = dimensionResource(R.dimen.padding_small)),
                 style = MaterialTheme.typography.headlineSmall
             )
             ClickableItem(Icons.AutoMirrored.Outlined.Launch, R.string.action_launch) { launchApp(pkg) }
@@ -116,22 +111,21 @@ class ApiActivity : ComponentActivity() {
 
     @Composable
     private fun ClickableItem(icon: ImageVector, @StringRes title: Int, onClick: () -> Unit) = Row(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = {
-            runCatching {
-                onClick()
-                finish()
-            }.onFailure(::setErrorDialog)
-        }), verticalAlignment = Alignment.CenterVertically
+        modifier = Modifier.fillMaxWidth().clickable {
+            runCatching { onClick(); finish() }.onFailure(::setErrorDialog)
+        },
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(imageVector = icon, contentDescription = null, modifier = Modifier.padding(dimensionResource(R.dimen.padding_medium)))
-        Text(text = stringResource(title), style = MaterialTheme.typography.bodyLarge)
+        Icon(icon, null, Modifier.padding(dimensionResource(R.dimen.padding_medium)))
+        Text(stringResource(title), style = MaterialTheme.typography.bodyLarge)
     }
 
     @Composable
     private fun ErrorDialog(t: Throwable) = AlertDialog(
-        text = { Text(text = t.message ?: t.stackTraceToString()) },
+        text = { Text(t.message ?: t.stackTraceToString()) },
         onDismissRequest = ::finish,
-        confirmButton = { TextButton(onClick = ::finish) { Text(text = stringResource(android.R.string.ok)) } })
+        confirmButton = { TextButton(onClick = ::finish) { Text(stringResource(android.R.string.ok)) } }
+    )
 
     private val requirePackage: String
         get() = intent.run {
@@ -173,10 +167,7 @@ class ApiActivity : ComponentActivity() {
         val filtered = list.filter { AppManager.isAppFrozen(it.packageName) != frozen && !(skipWhitelisted && it.whitelisted) }
         when (val result = AppManager.setListFrozen(frozen, *filtered.toTypedArray())) {
             null -> throw IllegalStateException(getString(R.string.permission_denied))
-            else -> {
-                HUI.showToast(if (frozen) R.string.msg_freeze else R.string.msg_unfreeze, result)
-                app.setAutoFreezeService()
-            }
+            else -> HUI.showToast(if (frozen) R.string.msg_freeze else R.string.msg_unfreeze, result)
         }
     }
 
