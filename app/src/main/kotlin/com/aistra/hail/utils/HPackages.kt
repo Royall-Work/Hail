@@ -2,11 +2,11 @@ package com.aistra.hail.utils
 
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
-import android.os.Build
-import androidx.annotation.RequiresApi
 import com.aistra.hail.HailApp.Companion.app
 
 object HPackages {
+    val myUserId get() = android.os.Process.myUserHandle().hashCode()
+
     fun packageUri(packageName: String) = "package:$packageName"
 
     fun getInstalledApplications(flags: Int = if (HTarget.N) PackageManager.MATCH_UNINSTALLED_PACKAGES else 8192): List<ApplicationInfo> =
@@ -19,8 +19,7 @@ object HPackages {
     ) = runCatching {
         if (HTarget.T) app.packageManager.getPackageInfo(
             packageName, PackageManager.PackageInfoFlags.of(flags.toLong())
-        )
-        else app.packageManager.getPackageInfo(packageName, flags)
+        ) else app.packageManager.getPackageInfo(packageName, flags)
     }.getOrNull()
 
     fun getApplicationInfoOrNull(
@@ -28,8 +27,7 @@ object HPackages {
     ) = runCatching {
         if (HTarget.T) app.packageManager.getApplicationInfo(
             packageName, PackageManager.ApplicationInfoFlags.of(flags.toLong())
-        )
-        else app.packageManager.getApplicationInfo(packageName, flags)
+        ) else app.packageManager.getApplicationInfo(packageName, flags)
     }.getOrNull()
 
     fun isAppHidden(packageName: String): Boolean = getApplicationInfoOrNull(packageName)?.let {
