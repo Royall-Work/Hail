@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           xmlns:tools="http://schemas.android.com/tools">
 
-    <uses-sdk tools:overrideLibrary="rikka.shizuku.api, com.rosan.dhizuku.api"/>
+    <uses-sdk tools:overrideLibrary="com.rosan.dhizuku.api"/>
 
     <uses-permission
             android:name="com.android.launcher.permission.INSTALL_SHORTCUT"
@@ -16,18 +16,7 @@
     <uses-permission
             android:name="android.permission.PACKAGE_USAGE_STATS"
             tools:ignore="ProtectedPermissions"/>
-    <uses-permission
-            android:name="android.permission.FORCE_STOP_PACKAGES"
-            tools:ignore="ProtectedPermissions"/>
-    <uses-permission
-            android:name="android.permission.CHANGE_COMPONENT_ENABLED_STATE"
-            tools:ignore="ProtectedPermissions"/>
-    <uses-permission
-            android:name="android.permission.MANAGE_APP_OPS_MODES"
-            tools:ignore="ProtectedPermissions"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
-    <uses-permission android:name="com.oasisfeng.island.permission.FREEZE_PACKAGE"/>
-    <uses-permission android:name="com.oasisfeng.island.permission.SUSPEND_PACKAGE"/>
 
     <application
             android:name=".HailApp"
@@ -50,7 +39,6 @@
             <intent-filter>
                 <action android:name="android.intent.action.ASSIST"/>
                 <action android:name="android.service.quicksettings.action.QS_TILE_PREFERENCES"/>
-
                 <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
         </activity>
@@ -73,10 +61,8 @@
                 <action android:name="${applicationId}.action.FREEZE_AUTO"/>
                 <action android:name="${applicationId}.action.LOCK"/>
                 <action android:name="${applicationId}.action.LOCK_FREEZE"/>
-
                 <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
-
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
@@ -84,35 +70,9 @@
             </intent-filter>
         </activity>
 
-        <provider
-                android:name="rikka.shizuku.ShizukuProvider"
-                android:authorities="${applicationId}.shizuku"
-                android:exported="true"
-                android:multiprocess="false"
-                android:permission="android.permission.INTERACT_ACROSS_USERS_FULL"/>
-
-        <receiver
-                android:name=".receiver.DeviceAdminReceiver"
-                android:description="@string/action_lock"
-                android:exported="false"
-                android:permission="android.permission.BIND_DEVICE_ADMIN">
-            <meta-data
-                    android:name="android.app.device_admin"
-                    android:resource="@xml/device_admin"/>
-            <intent-filter>
-                <action android:name="android.app.action.DEVICE_ADMIN_ENABLED"/>
-            </intent-filter>
-        </receiver>
         <receiver
                 android:name=".receiver.ScreenOffReceiver"
                 android:exported="false"/>
-        <receiver
-                android:name=".receiver.UnsuspendedReceiver"
-                android:exported="false">
-            <intent-filter>
-                <action android:name="android.intent.action.PACKAGE_UNSUSPENDED_MANUALLY"/>
-            </intent-filter>
-        </receiver>
 
         <service
                 android:name=".services.QSTileService"
