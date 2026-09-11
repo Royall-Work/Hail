@@ -23,7 +23,6 @@ import com.aistra.hail.extensions.*
 import com.aistra.hail.ui.main.MainFragment
 import com.aistra.hail.utils.HFiles
 import com.aistra.hail.utils.HPackages
-import com.aistra.hail.utils.HPolicy
 import com.aistra.hail.utils.HUI
 import com.aistra.hail.views.HRecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -55,8 +54,8 @@ class AppsFragment : MainFragment(), AppsAdapter.OnItemClickListener, AppsAdapte
             if (exportApkPkg == null || uri == null) return@registerForActivityResult
             lifecycleScope.launch {
                 val applicationInfo = HPackages.getApplicationInfoOrNull(exportApkPkg) ?: return@launch
-                val dialog =
-                    MaterialAlertDialogBuilder(activity).setView(R.layout.dialog_progress).setCancelable(false).show()
+                val dialog = MaterialAlertDialogBuilder(activity)
+                    .setView(R.layout.dialog_progress).setCancelable(false).show()
                 runCatching {
                     withContext(Dispatchers.IO) {
                         FileInputStream(applicationInfo.sourceDir).use { source ->
@@ -75,9 +74,7 @@ class AppsFragment : MainFragment(), AppsAdapter.OnItemClickListener, AppsAdapte
             }
         }
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
-    ): View {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         val menuHost = requireActivity() as MenuHost
         menuHost.addMenuProvider(this, viewLifecycleOwner, Lifecycle.State.RESUMED)
         _binding = FragmentAppsBinding.inflate(inflater, container, false)
@@ -97,9 +94,7 @@ class AppsFragment : MainFragment(), AppsAdapter.OnItemClickListener, AppsAdapte
             registerForContextMenu(this)
         }
 
-        model.isRefreshing.observe(viewLifecycleOwner) {
-            binding.refresh.isRefreshing = it
-        }
+        model.isRefreshing.observe(viewLifecycleOwner) { binding.refresh.isRefreshing = it }
         model.apps.apply {
             lastAppsHash = value.hashCode()
             observe(viewLifecycleOwner) {
@@ -114,20 +109,13 @@ class AppsFragment : MainFragment(), AppsAdapter.OnItemClickListener, AppsAdapte
                 lastQuery = it
             }
         }
-        model.displayApps.observe(viewLifecycleOwner) {
-            appsAdapter.submitList(it)
-        }
-
+        model.displayApps.observe(viewLifecycleOwner) { appsAdapter.submitList(it) }
         return binding.root
     }
 
-    override fun onItemClick(buttonView: CompoundButton) {
-//        buttonView.toggle()
-    }
+    override fun onItemClick(buttonView: CompoundButton) = Unit
 
-    override fun onCreateContextMenu(
-        menu: ContextMenu, v: View, menuInfo: ContextMenu.ContextMenuInfo?
-    ) {
+    override fun onCreateContextMenu(menu: ContextMenu, v: View, menuInfo: ContextMenu.ContextMenuInfo?) {
         contextMenuInfo = menuInfo
         val viewHolder = ((menuInfo as HRecyclerView.RecyclerViewContextMenuInfo).viewHolder as AppsAdapter.ViewHolder)
         menu.setHeaderTitle(viewHolder.info.loadLabel(activity.packageManager))
@@ -136,28 +124,18 @@ class AppsFragment : MainFragment(), AppsAdapter.OnItemClickListener, AppsAdapte
     }
 
     override fun onContextItemSelected(item: MenuItem): Boolean {
-        val viewHolder =
-            ((contextMenuInfo as HRecyclerView.RecyclerViewContextMenuInfo).viewHolder as AppsAdapter.ViewHolder)
+        val viewHolder = ((contextMenuInfo as HRecyclerView.RecyclerViewContextMenuInfo).viewHolder as AppsAdapter.ViewHolder)
         val info = viewHolder.info
         val name = info.loadLabel(app.packageManager)
         val pkg = info.packageName
         when (item.itemId) {
-            R.id.action_details -> HUI.startActivity(
-                Settings.ACTION_APPLICATION_DETAILS_SETTINGS, HPackages.packageUri(pkg)
-            )
-
+            R.id.action_details -> HUI.startActivity(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, HPackages.packageUri(pkg))
             R.id.action_export_clipboard -> {
                 HUI.copyText(pkg)
                 HUI.showToast(R.string.msg_text_copied, pkg)
             }
-
             R.id.action_extract_apk -> extractApk(pkg)
             R.id.action_uninstall -> uninstallApp(name, pkg)
-            R.id.action_reinstall -> {
-                if (AppManager.reinstallApp(pkg)) updateAppList()
-                else HUI.showToast(R.string.operation_failed, name)
-            }
-
             else -> return super.onContextItemSelected(item)
         }
         return true
@@ -169,21 +147,11 @@ class AppsFragment : MainFragment(), AppsAdapter.OnItemClickListener, AppsAdapte
     }
 
     private fun uninstallApp(name: CharSequence, pkg: String) {
-        when {
-            HPackages.isAppUninstalled(pkg) -> HUI.showToast(R.string.app_not_installed)
-
-            pkg == app.packageName -> {
-                when {
-                    HPolicy.isDeviceOwnerActive -> activity.ownerRemoveDialog()
-                    HPolicy.isProfileOwner -> HPolicy.removeProfileOwner()
-                    HPolicy.isAdminActive -> HPolicy.removeActiveAdmin()
-                    else -> showUninstallDialog(name, pkg)
-                }
-            }
-
-            HailData.workingMode == HailData.MODE_DEFAULT -> AppManager.uninstallApp(pkg)
-            else -> showUninstallDialog(name, pkg)
+        if (HPackages.isAppUninstalled(pkg)) {
+            HUI.showToast(R.string.app_not_installed)
+            return
         }
+        showUninstallDialog(name, pkg)
     }
 
     private fun showUninstallDialog(name: CharSequence, pkg: String) {
@@ -193,38 +161,31 @@ class AppsFragment : MainFragment(), AppsAdapter.OnItemClickListener, AppsAdapte
             }.setNegativeButton(android.R.string.cancel, null).show()
     }
 
-    override fun onItemCheckedChange(
-        buttonView: CompoundButton, isChecked: Boolean, packageName: String
-    ) {
+    override fun onItemCheckedChange(buttonView: CompoundButton, isChecked: Boolean, packageName: String) {
         if (!isChecked) {
             HailData.removeCheckedApp(packageName)
             buttonView.isChecked = false
             return
         }
 
-        if (HailData.workingMode.startsWith(HailData.DHIZUKU)) {
-            val modes = arrayOf(
-                getString(R.string.mode_dhizuku_hide),
-                getString(R.string.mode_dhizuku_suspend)
-            )
-            val values = arrayOf(
-                HailData.MODE_DHIZUKU_HIDE,
-                HailData.MODE_DHIZUKU_SUSPEND
-            )
-            val defaultMode = values.indexOf(HailData.workingMode).coerceAtLeast(0)
-            MaterialAlertDialogBuilder(activity)
-                .setTitle(R.string.action_freeze)
-                .setSingleChoiceItems(modes, defaultMode) { dialog, which ->
-                    HailData.addCheckedApp(packageName, mode = values[which])
-                    buttonView.isChecked = true
-                    dialog.dismiss()
-                }
-                .setOnCancelListener { buttonView.isChecked = false }
-                .show()
-        } else {
-            HailData.addCheckedApp(packageName)
-            buttonView.isChecked = true
-        }
+        val modes = arrayOf(
+            getString(R.string.mode_dhizuku_hide),
+            getString(R.string.mode_dhizuku_suspend)
+        )
+        val values = arrayOf(
+            HailData.MODE_DHIZUKU_HIDE,
+            HailData.MODE_DHIZUKU_SUSPEND
+        )
+        val defaultMode = values.indexOf(HailData.workingMode).coerceAtLeast(0)
+        MaterialAlertDialogBuilder(activity)
+            .setTitle(R.string.action_freeze)
+            .setSingleChoiceItems(modes, defaultMode) { dialog, which ->
+                HailData.addCheckedApp(packageName, mode = values[which])
+                buttonView.isChecked = true
+                dialog.dismiss()
+            }
+            .setOnCancelListener { buttonView.isChecked = false }
+            .show()
     }
 
     override fun onCreateMenu(menu: Menu, inflater: MenuInflater) {
@@ -267,10 +228,8 @@ class AppsFragment : MainFragment(), AppsAdapter.OnItemClickListener, AppsAdapte
             R.id.sort_by_update -> changeAppsSort(HailData.SORT_UPDATE, item)
             R.id.filter_user_apps -> changeAppsFilter(HailData.FILTER_USER_APPS, item)
             R.id.filter_system_apps -> MaterialAlertDialogBuilder(activity).setMessage(R.string.freeze_system_app)
-                .setPositiveButton(R.string.action_continue) { _, _ ->
-                    changeAppsFilter(HailData.FILTER_SYSTEM_APPS, item)
-                }.setNegativeButton(android.R.string.cancel, null).show()
-
+                .setPositiveButton(R.string.action_continue) { _, _ -> changeAppsFilter(HailData.FILTER_SYSTEM_APPS, item) }
+                .setNegativeButton(android.R.string.cancel, null).show()
             R.id.filter_uninstalled_apps -> changeAppsFilter(HailData.FILTER_UNINSTALLED_APPS, item)
             R.id.filter_frozen_apps -> changeAppsFilter(HailData.FILTER_FROZEN_APPS, item)
             R.id.filter_unfrozen_apps -> changeAppsFilter(HailData.FILTER_UNFROZEN_APPS, item)
@@ -293,7 +252,6 @@ class AppsFragment : MainFragment(), AppsAdapter.OnItemClickListener, AppsAdapte
                 HailData.changeAppsFilter(HailData.FILTER_SYSTEM_APPS, item.itemId == R.id.filter_system_apps)
                 HailData.changeAppsFilter(HailData.FILTER_UNINSTALLED_APPS, item.itemId == R.id.filter_uninstalled_apps)
             }
-
             else -> {
                 item.isChecked = !item.isChecked
                 HailData.changeAppsFilter(filter, item.isChecked)
