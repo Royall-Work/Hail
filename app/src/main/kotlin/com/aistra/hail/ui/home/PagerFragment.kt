@@ -413,9 +413,6 @@ class PagerFragment : MainFragment(), PagerAdapter.OnItemClickListener, PagerAda
         if (AppManager.isAppFrozen(packageName) && AppManager.setAppFrozen(packageName, false)) {
             updateCurrentList()
         }
-        if (HailData.workingMode == HailData.MODE_ISLAND_HIDE) {
-            HIsland.ensureLaunchIntentExists(packageName)
-        }
         app.packageManager.getLaunchIntentForPackage(packageName)?.let {
             HShortcuts.addDynamicShortcut(packageName)
             startActivity(it)
@@ -425,19 +422,6 @@ class PagerFragment : MainFragment(), PagerAdapter.OnItemClickListener, PagerAda
     private fun setListFrozen(
         frozen: Boolean, list: List<AppInfo> = HailData.checkedList, updateList: Boolean = true
     ) {
-        if (HailData.workingMode == HailData.MODE_DEFAULT) {
-            MaterialAlertDialogBuilder(activity).setMessage(R.string.msg_guide)
-                .setPositiveButton(android.R.string.ok, null).show()
-            return
-        } else if (HailData.workingMode == HailData.MODE_SHIZUKU_HIDE) {
-            runCatching { HShizuku.isRoot }.onSuccess {
-                if (!it) {
-                    MaterialAlertDialogBuilder(activity).setMessage(R.string.shizuku_hide_adb)
-                        .setPositiveButton(android.R.string.ok, null).show()
-                    return
-                }
-            }
-        }
         val filtered = list.filter { AppManager.isAppFrozen(it.packageName) != frozen }
         when (val result = AppManager.setListFrozen(frozen, *filtered.toTypedArray())) {
             null -> HUI.showToast(R.string.permission_denied)
