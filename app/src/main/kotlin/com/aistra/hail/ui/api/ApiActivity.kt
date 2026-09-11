@@ -129,8 +129,12 @@ class ApiActivity : ComponentActivity() {
 
     private val requirePackage: String
         get() = intent.run {
-            if (action == Intent.ACTION_VIEW) data?.getQueryParameter(HailData.KEY_PACKAGE)
-            else getStringExtra(HailData.KEY_PACKAGE)
+            when {
+                action == Intent.ACTION_VIEW -> data?.getQueryParameter(HailData.KEY_PACKAGE)
+                action == Intent.ACTION_SHOW_APP_INFO -> getStringExtra(Intent.EXTRA_PACKAGE_NAME)
+                    ?: getStringExtra("android.intent.extra.PACKAGE_NAME")
+                else -> getStringExtra(HailData.KEY_PACKAGE)
+            }
         }?.also {
             HPackages.getApplicationInfoOrNull(it) ?: throw NameNotFoundException(getString(R.string.app_not_installed))
         } ?: throw IllegalArgumentException("Package must not be null")
