@@ -50,7 +50,6 @@ android {
     }
     androidResources {
         generateLocaleConfig = true
-        // Do not compress the dex files, so the apk can be imported as a privileged app
         noCompress += "dex"
     }
     buildFeatures {
@@ -100,8 +99,6 @@ dependencies {
     implementation(libs.pinyin4j)
     implementation(libs.material)
     implementation(libs.insetter)
-    implementation(libs.shizuku.api)
-    implementation(libs.shizuku.provider)
     implementation(libs.dhizuku.api)
     implementation(libs.appiconloader)
     implementation(libs.compose.preference)
